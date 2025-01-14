@@ -1,0 +1,49 @@
+Here is the code for `app.js`:
+```
+const express = require('express');
+const app = express();
+const dialogflow = require('./dialogflow-agent');
+const textToSpeech = require('./text-to-speech');
+const twilio = require('./twilio');
+
+// Set up Express.js server
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Set up Dialogflow agent
+const dialogflowAgent = new dialogflow.DialogflowAgent();
+
+// Set up Text-to-Speech engine
+const textToSpeechEngine = new textToSpeech.TextToSpeechEngine();
+
+// Set up Twilio client
+const twilioClient = new twilio.TwilioClient();
+
+// Define route for incoming calls
+app.post('/webhook', async (req, res) => {
+  try {
+    // Get the incoming call data from Twilio
+    const callData = req.body;
+
+    // Detect intent using Dialogflow
+    const intent = await dialogflowAgent.detectIntent(callData);
+
+    // Generate response using Text-to-Speech engine
+    const response = await textToSpeechEngine.generateResponse(intent);
+
+    // Send response back to Twilio
+    res.send(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error occurred while processing request');
+  }
+});
+
+// Start Express.js server
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
+});
+```
+This code sets up an Express.js server that listens for incoming calls from Twilio. When a call is received, the server uses Dialogflow to detect the intent behind the call, generates a response using the Text-to-Speech engine, and sends the response back to Twilio.
+
